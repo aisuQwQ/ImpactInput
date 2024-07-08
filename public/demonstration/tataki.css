@@ -1,0 +1,139 @@
+*{
+    margin: 0;
+    background-color: rgb(235, 232, 232);
+}
+
+#textcontainer {
+    text-align: center;
+}
+
+#tapping {
+    color:red;
+}
+
+#pointbox{
+    justify-content: center;
+    display: flex;
+}
+
+#container {
+    width: 100%;
+    height: 100px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background-color: rgb(107, 107, 107);
+    border: 4px solid #ecefeb;
+    box-shadow: 2px 2px 4px;
+    display: block;
+}
+
+#container #tappoint {
+    width: 150px;
+    height: 150px;
+    margin: -25px 0px 0px 100px;
+    border-radius: 50% 50% 50% 50%;
+    border: 2px solid rgb(107, 107, 107);
+    z-index: 1;
+    background-color: #e0e0e0;
+}
+
+#container #box1 {
+    width: 100px;
+    height: 100px;
+    margin: -125px 0px 0px 85%;
+    background-color: #f44040;
+    border: 1px solid rgb(242, 205, 205);
+    border-radius: 50% 50% 50% 15%;
+    z-index: 2;
+}
+
+#container #box2 {
+    width: 100px;
+    height: 100px;
+    margin: -100px 0px 0px 85%;
+    background-color: #416ef7;
+    border: 1px solid rgb(184, 199, 243);
+    border-radius: 50%;
+    border-radius: 50% 50% 15% 50%;
+    z-index: 2;
+}
+
+#container #box3 {
+    width: 100px;
+    height: 100px;
+    margin: -101px 0px 0px 85%;
+    background-color: rgb(238, 236, 111);
+    border: 1px solid rgb(245, 240, 199);
+    border-radius: 15% 50% 50% 50%;
+    z-index: 2;
+}
+
+#container #box4 {
+    width: 100px;
+    height: 100px;
+    margin: -102px 0px 0px 85%;
+    background-color: #5dd820;
+    border: 1px solid rgb(199, 245, 185);
+    border-radius: 50%;
+    border-radius: 50% 15% 50% 50%;
+    z-index: 2;
+}
+
+#container #box5 {
+    width: 100px;
+    height: 100px;
+    margin: -115px 0px 0px 85%;
+    background-color: rgb(238, 236, 111);
+    border: 10px solid rgb(245, 240, 199);
+    border-radius: 15% 50% 50% 50%;
+    z-index: 2;
+}
+
+#container #box6 {
+    width: 100px;
+    height: 100px;
+    margin: -120px 0px 0px 85%;
+    background-color: #5dd820;
+    border: 10px solid rgb(199, 245, 185);
+    border-radius: 50%;
+    border-radius: 50% 15% 50% 50%;
+    z-index: 2;
+}
+
+#btncontainer {
+    display: flex;
+    justify-content: space-between;
+}
+
+#lbutton {
+    background-color: rgb(237, 218, 199);
+    width: 300px;
+    height: 150px;
+    border-radius: 0 0 50% 0;
+    box-shadow: 2px 2px 4px gray;
+    border: 5px solid #f44040;
+}
+
+#lbutton:hover{
+    background-color: rgb(205, 189, 174);
+}
+
+#rbutton {
+    background-color: rgb(237, 218, 199);
+    width:300px;
+    height:150px;
+    border-radius: 0 0 0 50%;
+    box-shadow: 2px 2px 4px gray;
+    border: 5px solid #416ef7;
+}
+
+#center {
+    margin-top: 10px;
+}
+
+#btncenter {
+}
+
+#rbutton:hover{
+    background-color: rgb(205, 189, 174);
+}

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <title>TATAKI</title>
+        <!-- <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" /> -->
+        <meta name="viewport" content="width=device-width" />
+        <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.1.0/dist/tf.min.js"></script>
+        <script src="demonstration/tapping.js"></script>
+        <link rel="stylesheet" href="/demonstration/tataki.css" type="text/css" />
+    </head>
+    <body>
+        <div id="textcontainer">
+            <div id="tapping"><h1>TATAKI</h1></div>
+        </div>
+        <div id="container">
+            <div id="tappoint"></div>
+            <div id="box1"></div>
+            <div id="box2"></div>
+            <div id="box3"></div>
+            <div id="box4"></div>
+            <div id="box5"></div>
+            <div id="box6"></div>
+        </div>
+        <div id="btncontainer">
+            <div id="lbutton"></div>
+            <div id="center">
+                <div id="pointbox">
+                    <div id="point">0</div>
+                    <div>pt</div>
+                </div>
+            </div>
+            <div id="rbutton"></div>
+        </div>
+        <script src="demonstration/anime.min.js"></script>
+        <script>
+            let point = 0;
+            let pointarea = document.getElementById("point");
+            var animation = true;
+            let tappoint = document.getElementById("tappoint");
+            let rbtn = document.getElementById("rbutton");
+            let lbtn = document.getElementById("lbutton");
+            let tap = tappoint.getBoundingClientRect();
+
+            setInterval(() => {
+                rect1 = box1.getBoundingClientRect();
+                rect2 = box2.getBoundingClientRect();
+                rect3 = box3.getBoundingClientRect();
+                rect4 = box4.getBoundingClientRect();
+                rect5 = box5.getBoundingClientRect();
+                rect6 = box6.getBoundingClientRect();
+                tap = tappoint.getBoundingClientRect();
+            }, 50);
+
+            lbtn.addEventListener(
+                "click",
+                function () {
+                    tappoint.style = "width:148px;height:148px;border:3px solid #f44040";
+                    if (rect1.x >= tap.x - 50 && rect1.x <= tap.x + 50) {
+                        tappoint.style = "width:148px;height:148px;border:3px solid #f44040;background-color:#f44040";
+                        point += 10;
+                        pointarea.textContent = point;
+                    }
+                },
+                false
+            );
+
+            rbtn.addEventListener(
+                "click",
+                function () {
+                    tappoint.style = " width:148px;height:148px;border:3px solid #416ef7";
+                    if (rect2.x >= tap.x - 50 && rect2.x <= tap.x + 50) {
+                        tappoint.style = "width:148px;height:148px;border:3px solid #416ef7;background-color:#416ef7";
+                        point += 10;
+                        pointarea.textContent = point;
+                    }
+                },
+                false
+            );
+
+            if (animation == true) {
+                console.log(animation);
+                function animate1() {
+                    anime({
+                        targets: "#box1",
+                        backgroundColor: "#f44040",
+                        duration: 3000,
+                        translateX: -1500,
+                        easing: "linear",
+                        loop: true,
+                    });
+                }
+                function animate2() {
+                    anime({
+                        targets: "#box2",
+                        backgroundColor: "#416ef7",
+                        duration: 3000,
+                        translateX: -1500,
+                        easing: "linear",
+                        loop: true,
+                        delay: 150,
+                    });
+                }
+                function animate3() {
+                    anime({
+                        targets: "#box3",
+                        backgroundColor: "rgb(238, 236, 111)",
+                        duration: 3000,
+                        translateX: -1500,
+                        easing: "linear",
+                        loop: true,
+                        delay: 300,
+                    });
+                }
+                function animate4() {
+                    anime({
+                        targets: "#box4",
+                        backgroundColor: "#5dd820",
+                        duration: 3000,
+                        translateX: -1500,
+                        easing: "linear",
+                        loop: true,
+                        delay: 450,
+                    });
+                }
+                function animate5() {
+                    anime({
+                        targets: "#box5",
+                        backgroundColor: "rgb(238, 236, 111)",
+                        duration: 3000,
+                        translateX: -1500,
+                        easing: "linear",
+                        loop: true,
+                        delay: 600,
+                    });
+                }
+
+                function animate6() {
+                    anime({
+                        targets: "#box6",
+                        backgroundColor: "#5dd820",
+                        duration: 3000,
+                        translateX: -1500,
+                        easing: "linear",
+                        loop: true,
+                        delay: 750,
+                    });
+                }
+
+                animate1();
+                animate2();
+                animate3();
+                animate4();
+                animate5();
+                animate6();
+            }
+        </script>
+        <script type="module">
+            let tappoint = document.getElementById("tappoint");
+            //tapping.js
+            let funcRight;
+            let funcLeft;
+            let funcMis;
+
+            let funcRightStrong;
+            let funcLeftStrong;
+
+            funcLeft = () => {
+                tappoint.style = "border:3px solid rgb(238, 236, 111)";
+                if (rect3.x >= tap.x - 50 && rect3.x <= tap.x + 50) {
+                    tappoint.style = "width:148px;height:148px;border:3px solid rgb(238, 236, 111);background-color:rgb(238, 236, 111)";
+                    point += 10;
+                    pointarea.textContent = point;
+                }
+            };
+
+            funcLeftStrong = () => {
+                tappoint.style = "border:3px solid rgb(238, 236, 111)";
+                if (rect5.x >= tap.x - 50 && rect5.x <= tap.x + 50) {
+                    tappoint.style = "width:140px;height:140px;border:6px solid rgb(245, 240, 199);background-color:rgb(238, 236, 111)";
+                    point += 100;
+                    pointarea.textContent = point;
+                }
+            };
+
+            funcRight = () => {
+                tappoint.style = "border:3px solid #5dd820";
+                if (rect4.x >= tap.x - 50 && rect4.x <= tap.x + 50) {
+                    tappoint.style = "width:148px;height:148px;border:3px solid #5dd820;background-color:#5dd820";
+                    point += 10;
+                    pointarea.textContent = point;
+                }
+            };
+
+            funcRightStrong = () => {
+                tappoint.style = "border:3px solid #5dd820";
+                if (rect6.x >= tap.x - 50 && rect6.x <= tap.x + 50) {
+                    tappoint.style = "width:140px;height:140px;border:6px solid rgb(199, 245, 185);background-color:#5dd820";
+                    point += 100;
+                    pointarea.textContent = point;
+                }
+            };
+
+            //通常の強さで叩いた場合のプロセス
+            window.addEventListener("tappingHorizontallyRight", funcRight);
+            window.addEventListener("tappingHorizontallyLeft", funcLeft);
+
+            //強く叩いた場合のプロセス
+            window.addEventListener("tappingHorizontallyRightStrong", funcRightStrong);
+            window.addEventListener("tappingHorizontallyLeftStrong", funcLeftStrong);
+        </script>
+    </body>
+</html>
