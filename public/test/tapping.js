@@ -1,7 +1,5 @@
 import * as tf from "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/+esm";
 
-console.log("TensorFlow.js version:", tf);
-
 let tappingSettings = {};
 // デフォルトの閾値
 tappingSettings.defaultTappingThreshold = 1;
@@ -152,7 +150,6 @@ let TappingModel = class {
     }
 };
 
-// let TappingSensor = class {
 class TappingSensor {
     constructor() {
         this.handleDeviceMotion = this.handleDeviceMotion.bind(this);
@@ -407,202 +404,62 @@ let handleTappingRemove = () => {
     document.getElementById("tappingChild").remove();
 };
 
-let TappingDom = class {
-    constructor(func) {
-        this.handleDeviceMotion = func;
-
-        this.tapping = document.getElementById("tapping"); // 親要素
-        this.tappingChild; // Flexbox
-        this.tappingButtonOk; // OKボタン
-        this.tappingButtonCalib; // キャリブレーションボタン
-
-        // 要素の作成
-        this.makeTappingChild();
-        this.makeTappingButtonOk();
-        // this.makeTappingButtonCalib();
-        this.makeTappingButtonNg();
-        // this.calibrationListener();
-    }
-
-    // Flexboxを作成
-    makeTappingChild() {
-        let tappingChild = document.createElement("div");
-        // id
-        tappingChild.id = "tappingChild";
-        // サイズ
-        tappingChild.style.height = String(parseInt(window.innerHeight * 0.33)) + "px";
-        tappingChild.style.width = String(parseInt(window.innerWidth)) + "px";
-        // スタイル
-        tappingChild.style.backgroundColor = "rgba(250,220,180,0.25)";
-        tappingChild.style.position = "fixed";
-        tappingChild.style.bottom = "0";
-        tappingChild.style.left = "0";
-        tappingChild.style.right = "0";
-        tappingChild.style.margin = "0";
-        // Flexboxにする
-        tappingChild.style.display = "flex";
-        tappingChild.style.alignItems = "center";
-        tappingChild.style.justifyContent = "space-around";
-        tappingChild.style.flexDirection = "column";
-        // サイズ
-        let onWindowResize = () => {
-            tappingChild.style.height = String(parseInt(window.innerHeight * 0.33)) + "px";
-            tappingChild.style.width = String(parseInt(window.innerWidth)) + "px";
-        };
-        window.addEventListener("resize", onWindowResize);
-        // 要素を追加
-        this.tappingChild = tappingChild;
-        this.tapping.appendChild(this.tappingChild);
-    }
-
-    // OKボタンを作成
-    makeTappingButtonOk() {
-        let tappingButtonOk = document.createElement("button");
-        // id
-        tappingButtonOk.id = "tappingButtonOk";
-        // テキスト内容
-        tappingButtonOk.innerHTML = "ゲームスタート";
-        // スタイル
-        tappingButtonOk.style.height = "30%";
-        tappingButtonOk.style.width = "80%";
-        tappingButtonOk.style.fontSize = "min(3vh, 4vw)";
-        // イベント
-        tappingButtonOk.addEventListener("click", this.handleClickDeviceSensor.bind(this));
-        tappingButtonOk.addEventListener("click", handleTappingRemove);
-        // 要素を追加
-        this.tappingButtonOk = tappingButtonOk;
-        this.tappingChild.appendChild(this.tappingButtonOk);
-    }
-
-    // キャリブレーションボタンを作成
-    makeTappingButtonCalib() {
-        let tappingButtonCalib = document.createElement("button");
-        // id
-        tappingButtonCalib.id = "tappingButtonCalib";
-        // テキスト内容
-        tappingButtonCalib.innerHTML = "叩きのキャリブレーションをする<br>" + "現在の閾値：" + String(tappingSettings.tappingThreshold);
-        if (tappingSettings.tappingThreshold == tappingSettings.defaultTappingThreshold) {
-            tappingButtonCalib.innerHTML = "叩きのキャリブレーションをする<br>" + "現在の閾値：" + "デフォルト";
-        }
-        // スタイル
-        tappingButtonCalib.style.height = "30%";
-        tappingButtonCalib.style.width = "80%";
-        // tappingButtonCalib.style.fontSize = 'clamp(0.2rem, 1rem, 10rem)';
-        // tappingButtonCalib.style.minHeight = '0vw'; //clampがsafariで効かないから対策
-        tappingButtonCalib.style.fontSize = "min(3vh, 4vw)";
-        // イベント
-        let seni = () => {
-            location.href = tappingSettings.calibrationUrl;
-        };
-        tappingButtonCalib.addEventListener("click", seni);
-        // 要素を追加
-        this.tappingButtonCalib = tappingButtonCalib;
-        this.tappingChild.appendChild(this.tappingButtonCalib);
-    }
-
-    // NGボタンを作成
-    makeTappingButtonNg() {
-        let tappingButtonNg = document.createElement("button");
-        // id
-        tappingButtonNg.id = "tappingButtonNg";
-        // テキスト内容
-        tappingButtonNg.innerHTML = "角タップをキャンセル";
-        // スタイル
-        tappingButtonNg.style.height = "20%";
-        tappingButtonNg.style.width = "80%";
-        tappingButtonNg.style.fontSize = "min(3vh, 4vw)";
-        // イベント
-        tappingButtonNg.addEventListener("click", handleTappingRemove);
-        // 要素を追加
-        this.tappingButtonNg = tappingButtonNg;
-        this.tappingChild.appendChild(this.tappingButtonNg);
-    }
-
-    // funcをwindowに登録する
-    handleClickDeviceSensor() {
-        // DeviceMotionEventがある時
-        if (window.DeviceMotionEvent) {
-            console.log(window.DeviceMotionEvent);
-
-            // ios13以上の時
-            if (DeviceMotionEvent.requestPermission && typeof DeviceMotionEvent.requestPermission === "function") {
-                console.log("ios13+");
-                // ユーザーに許可を求めるダイアログを表示
-                DeviceMotionEvent.requestPermission()
-                    .then((response) => {
-                        if (response === "granted") {
-                            // 許可された場合のみイベントハンドラを追加
-                            window.addEventListener("devicemotion", this.handleDeviceMotion);
-                        }
-                    })
-                    .catch((e) => {
-                        console.log(e);
-                    });
-
-                // ios13以上でない時
-            } else {
-                console.log("non ios13+");
-                window.addEventListener("devicemotion", this.handleDeviceMotion);
+/**
+ * to initialize tapping.js. also contain DeviceMotionEvent request permission
+ * @param {HTMLElement} dom - dom for binding user action to request permission
+ * @param {Function} grantedFunc - function called after permission granted
+ * @param {Function} deniedFunc - function called after permission denied
+ */
+export function tappingjsInit(dom, grantedFunc = null, deniedFunc = null) {
+    dom.addEventListener(
+        "click",
+        async () => {
+            const success = await reqPermission();
+            if (success == true && grantedFunc != null) {
+                grantedFunc();
             }
-
-            // DeviceMotionEventがない時
-        } else {
-            console.log("window.DeviceMotionEventがありません");
-            alert("このデバイスはDeviceMotionEventに対応していません");
-        }
-    }
-
-    // キャリブレーション結果を受け取る
-    calibrationListener() {
-        // tappingThresholdを取得するためのiframe
-        let tappingThresholdIframe = document.createElement("iframe");
-        // id
-        tappingThresholdIframe.id = "tappingDatabridge";
-        // src
-        tappingThresholdIframe.src = tappingSettings.calibrationGetUrl;
-        // スタイル
-        tappingThresholdIframe.style.display = "none";
-        // イベント
-        // データを要求
-        let getTappingThreshold = () => {
-            tappingThresholdIframe.contentWindow.postMessage("GET", "*"); // 'DELETE'にすると削除できる
-        };
-        tappingThresholdIframe.addEventListener("load", getTappingThreshold);
-        window.addEventListener("pageshow", getTappingThreshold);
-        // 要素を追加
-        tappingChild.appendChild(tappingThresholdIframe);
-        // windowにイベント追加
-        // データを受信した時
-        window.addEventListener("message", (e) => {
-            if (e.origin == tappingSettings.calibrationGetUrl) {
-                let data = e.data;
-                // console.log(data);
-                if (data.body.tappingThreshold) {
-                    tappingSettings.tappingThreshold = data.body.tappingThreshold;
-                }
-                // console.log('data.body.tappingThreshold:', data.body.tappingThreshold);
-                // console.log('tappingThreshold:', tappingSettings.tappingThreshold);
-                if (data.body.deviceKinds) {
-                    tappingSettings.deviceKinds = data.body.deviceKinds;
-                }
-                // console.log('data.body.deviceKinds:', data.body.deviceKinds);
-                // console.log('deviceKinds:', tappingSettings.deviceKinds);
-                let tappingButtonCalib = document.getElementById("tappingButtonCalib");
-                tappingButtonCalib.innerHTML = "叩きのキャリブレーションをする<br>" + "現在の閾値：" + String(Math.round(tappingSettings.tappingThreshold * 1000) / 1000);
-                if (tappingSettings.tappingThreshold == tappingSettings.defaultTappingThreshold) {
-                    tappingButtonCalib.innerHTML = "叩きのキャリブレーションをする<br>" + "現在の閾値：" + "デフォルト";
-                }
+            if (success == false && deniedFunc != null) {
+                deniedFunc();
             }
-        });
-    }
-};
+        },
+        { once: true }
+    );
+}
 
-let TappingManager = class {
-    constructor() {
-        this.tappingSensor = new TappingSensor();
-        this.tappingDom = new TappingDom(this.tappingSensor.handleDeviceMotion);
+/**
+ * to DeviceMotionEvent request permission
+ * @return {boolean} DeviceMotion granted or not
+ */
+export async function reqPermission() {
+    const TS = new TappingSensor();
+
+    // DeviceMotionEventがない時
+    if (!window.DeviceMotionEvent) {
+        console.log("window.DeviceMotionEventがありません");
+        alert("このデバイスはDeviceMotionEventに対応していません");
+        return false;
     }
-};
+    // DeviceMotionEventがある時
+    console.log(window.DeviceMotionEvent);
+
+    // ios13以上の時
+    if (DeviceMotionEvent.requestPermission && typeof DeviceMotionEvent.requestPermission === "function") {
+        console.log("ios13+");
+        // ユーザーに許可を求めるダイアログを表示
+        const dme = await DeviceMotionEvent.requestPermission();
+        if (dme == "denied") return false;
+        if (dme == "granted") {
+            window.addEventListener("devicemotion", TS.handleDeviceMotion);
+            return true;
+        }
+
+        // ios13以上でない時
+    } else {
+        console.log("non ios13+");
+        window.addEventListener("devicemotion", TS.handleDeviceMotion);
+        return true;
+    }
+}
 
 window.addEventListener("load", () => {
     // 向き
@@ -616,7 +473,4 @@ window.addEventListener("load", () => {
     };
     tappingWindowResize();
     window.addEventListener("resize", tappingWindowResize);
-
-    // 本体
-    let tappingManager = new TappingManager();
 });

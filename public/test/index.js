@@ -1,3 +1,17 @@
+import { init } from "./tapping.js";
+import { tappingjsInit } from "./tapping.js";
+
+const btn = document.querySelector("#start-btn");
+function deny() {
+    const msg = document.querySelector("#msg");
+    msg.innerHTML = "拒絶されました";
+}
+function grant() {
+    const msg = document.querySelector("#msg");
+    msg.innerHTML = "付与されました";
+}
+tappingjsInit(btn, grant, deny);
+
 //通常の強さで叩いた場合のプロセス
 window.addEventListener("tappingHorizontallyRight", funcRight);
 window.addEventListener("tappingHorizontallyLeft", funcLeft);
