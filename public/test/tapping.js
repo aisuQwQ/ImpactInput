@@ -1,37 +1,11 @@
 import * as tf from "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/+esm";
 
-const tappingSettings = {};
-// デフォルトの閾値
-tappingSettings.defaultTappingThreshold = 1;
-// ユーザがキャリブレーションした閾値
-tappingSettings.tappingThreshold = 1;
-// 閾値の前の時間
-tappingSettings.beforeThresholdTimeRange = 200; // 0.2秒
-// 閾値の後の時間
-tappingSettings.afterThresholdTimeRange = 50; // 0.05秒
-// 叩きの最低間隔(連続で叩きイベントが発行されないようにする)
-tappingSettings.tappingMinimumInterval = 500; //0.5秒
-// TensorFlor.jsモデルのパス
-tappingSettings.modelUrl = "tfjs/model.json";
-// キャリブレーションページのパス
-tappingSettings.calibrationUrl = "https://tataki-server.fun/calibration";
-// キャリブレーション結果を取得する頁のパス
-tappingSettings.calibrationGetUrl = "https://tataki-server.fun";
-// 向き
-tappingSettings.deviceOrientation = "vertical";
-// 機種
-tappingSettings.deviceKinds = "others";
-
-//強弱の判断 0 ->弱い叩き 1 ->強い叩き
-let tappingStrength = 0;
-
-//強弱の閾値
-const strength_border = 5.0;
-
-const TappingModel = class {
+class TappingModel {
     constructor() {
         this.model;
-        const modelUrl = tappingSettings.modelUrl;
+        const modelUrl = TAPPING.config.modelUrl;
+        console.log("???", modelUrl);
+        
         this.model_load(modelUrl);
 
         const event0 = new CustomEvent("tappingTopRight");
@@ -80,11 +54,11 @@ const TappingModel = class {
                 }
 
                 let kinds_arr;
-                if (tappingSettings.deviceKinds == "SE3") {
+                if (TAPPING.config.deviceKinds == "SE3") {
                     kinds_arr = [1, 0, 0];
-                } else if (tappingSettings.deviceKinds == "Nexus9") {
+                } else if (TAPPING.config.deviceKinds == "Nexus9") {
                     kinds_arr = [0, 1, 0];
-                } else if (tappingSettings.deviceKinds == "FireHD10") {
+                } else if (TAPPING.config.deviceKinds == "FireHD10") {
                     kinds_arr = [0, 0, 1];
                 } else {
                     kinds_arr = [1, 1, 0];
@@ -126,17 +100,17 @@ const TappingModel = class {
         const s = n.toFixed();
         let act = -1;
         if (s == 5) {
-            if (tappingStrength == 1) {
+            if (TAPPING.config.tappingStrength == 1) {
                 act = 8;
-                tappingStrength = 0;
-            } else if (tappingStrength == 0) {
+                TAPPING.config.tappingStrength = 0;
+            } else if (TAPPING.config.tappingStrength == 0) {
                 act = 5;
             }
         } else if (s == 6) {
-            if (tappingStrength == 1) {
+            if (TAPPING.config.tappingStrength == 1) {
                 act = 9;
-                tappingStrength = 0;
-            } else if (tappingStrength == 0) {
+                TAPPING.config.tappingStrength = 0;
+            } else if (TAPPING.config.tappingStrength == 0) {
                 act = 6;
             }
         } else {
@@ -172,6 +146,10 @@ class TappingSensor {
 
     // センサデータを取得した時
     handleDeviceMotion(e) {
+        console.log('???');
+        for(const i of Object.keys(TAPPING.config)){
+            console.log(i, ":", TAPPING.config[i]);
+        }
         
         // 通常の処理を無効にする
         // e.preventDefault();
@@ -227,7 +205,7 @@ class TappingSensor {
         this.arrTime.push(now);
 
         // 古いデータを削除
-        while (this.arrTime[0] < now - tappingSettings.beforeThresholdTimeRange && this.isTapping == false) {
+        while (this.arrTime[0] < now - TAPPING.config.beforeThresholdTimeRange && this.isTapping == false) {
             this.arrAX.shift();
             this.arrAY.shift();
             this.arrAZ.shift();
@@ -240,8 +218,8 @@ class TappingSensor {
 
     // 叩きの始まりを検知
     checkTappingStart(ax, ay, az, now) {
-        if (now > this.shikiitiTime + tappingSettings.tappingMinimumInterval) {
-            if (Math.abs(ax) > tappingSettings.tappingThreshold || Math.abs(ay) > tappingSettings.tappingThreshold || Math.abs(az) > tappingSettings.tappingThreshold) {
+        if (now > this.shikiitiTime + TAPPING.config.tappingMinimumInterval) {
+            if (Math.abs(ax) > TAPPING.config.tappingThreshold || Math.abs(ay) > TAPPING.config.tappingThreshold || Math.abs(az) > TAPPING.config.tappingThreshold) {
                 this.isTapping = true;
                 this.shikiitiTime = now;
             }
@@ -251,7 +229,7 @@ class TappingSensor {
     // 叩きの終わりを検知
     checkTappingEnd(now) {
         if (this.isTapping == true) {
-            if (now > this.shikiitiTime + tappingSettings.afterThresholdTimeRange) {
+            if (now > this.shikiitiTime + TAPPING.config.afterThresholdTimeRange) {
                 this.isTapping = false;
 
                 // // 前処理
@@ -295,10 +273,10 @@ class TappingSensor {
         const maxIndex = strength_arry.indexOf(Math.max(...strength_arry));
 
         //叩きの強弱を評価
-        if (Math.sqrt(strength_arry[maxIndex]) > strength_border) {
-            tappingStrength = 1;
+        if (Math.sqrt(strength_arry[maxIndex]) > TAPPING.config.strength_border) {
+            TAPPING.config.tappingStrength = 1;
         } else {
-            tappingStrength = 0;
+            TAPPING.config.tappingStrength = 0;
         }
 
         let _array = [_ax, _ay, _az, _rx, _ry, _rz];
@@ -401,77 +379,6 @@ class TappingSensor {
     }
 }
 
-/**
- * to initialize tapping.js. also contain DeviceMotionEvent request permission
- * @param {HTMLElement} dom - dom for binding user action to request permission
- * @param {Function} grantedFunc - function called after permission granted
- * @param {Function} deniedFunc - function called after permission denied
- */
-export function tappingjsInit(dom, grantedFunc = null, deniedFunc = null) {
-    dom.addEventListener(
-        "click",
-        async () => {
-            const success = await reqPermission();
-            if (success == true && grantedFunc != null) {
-                grantedFunc();
-            }
-            if (success == false && deniedFunc != null) {
-                deniedFunc();
-            }
-        },
-        { once: true }
-    );
-}
-
-/**
- * to DeviceMotionEvent request permission
- * @return {boolean} DeviceMotion granted or not
- */
-export async function reqPermission() {
-    const TS = new TappingSensor();
-
-    // DeviceMotionEventがない時
-    if (!globalThis.DeviceMotionEvent) {
-        console.log("globalThis.DeviceMotionEventがありません");
-        alert("このデバイスはDeviceMotionEventに対応していません");
-        return false;
-    }
-    // DeviceMotionEventがある時
-    console.log(globalThis.DeviceMotionEvent);
-
-    // ios13以上の時
-    if (DeviceMotionEvent.requestPermission && typeof DeviceMotionEvent.requestPermission === "function") {
-        console.log("ios13+");
-        // ユーザーに許可を求めるダイアログを表示
-        const dme = await DeviceMotionEvent.requestPermission();
-        if (dme == "denied") return false;
-        if (dme == "granted") {
-            globalThis.addEventListener("devicemotion", TS.handleDeviceMotion);
-            return true;
-        }
-
-        // ios13以上でない時
-    } else {
-        console.log("non ios13+");
-        globalThis.addEventListener("devicemotion", TS.handleDeviceMotion);
-        return true;
-    }
-}
-
-// globalThis.addEventListener("load", () => {
-//     // 向き
-//     let tappingWindowResize = () => {
-//         if (globalThis.innerWidth > globalThis.innerHeight) {
-//             tappingSettings.deviceOrientation = "horizontal";
-//         } else {
-//             tappingSettings.deviceOrientation = "vertical";
-//         }
-//         // console.log(tappingSettings.deviceOrientation);
-//     };
-//     tappingWindowResize();
-//     globalThis.addEventListener("resize", tappingWindowResize);
-// });
-
 export class TAPPING {
     static config={
         // デフォルトの閾値
@@ -510,7 +417,6 @@ export class TAPPING {
 
         this.tappingjsInit(dom, grantedFunc, deniedFunc);
 
-
         //resize時の処理バインド
         globalThis.addEventListener(
             "load",
@@ -543,7 +449,7 @@ export class TAPPING {
         dom.addEventListener(
             "click",
             async () => {
-                const success = await reqPermission();
+                const success = await this.reqPermission();
                 if (success == true && grantedFunc != null) {
                     grantedFunc();
                 }
@@ -558,6 +464,7 @@ export class TAPPING {
     /**
      * to DeviceMotionEvent request permission
      * @return {boolean} DeviceMotion granted or not
+     * @see TappingSensor
      */
     async reqPermission() {
         const TS = new TappingSensor();
