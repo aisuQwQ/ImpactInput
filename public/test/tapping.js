@@ -1,6 +1,6 @@
 import * as tf from "https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/+esm";
 
-let tappingSettings = {};
+const tappingSettings = {};
 // デフォルトの閾値
 tappingSettings.defaultTappingThreshold = 1;
 // ユーザがキャリブレーションした閾値
@@ -22,30 +22,30 @@ tappingSettings.deviceOrientation = "vertical";
 // 機種
 tappingSettings.deviceKinds = "others";
 
-//強弱の判断 0 ->弱い叩き　1 ->強い叩き
+//強弱の判断 0 ->弱い叩き 1 ->強い叩き
 let tappingStrength = 0;
 
 //強弱の閾値
-let strength_border = 5.0;
+const strength_border = 5.0;
 
-let TappingModel = class {
+const TappingModel = class {
     constructor() {
         this.model;
-        let modelUrl = tappingSettings.modelUrl;
+        const modelUrl = tappingSettings.modelUrl;
         this.model_load(modelUrl);
 
-        let event0 = new CustomEvent("tappingTopRight");
-        let event1 = new CustomEvent("tappingBottomRight");
-        let event2 = new CustomEvent("tappingTopLeft");
-        let event3 = new CustomEvent("tappingBottomLeft");
-        let event4 = new CustomEvent("tappingMisDetectioin");
+        const event0 = new CustomEvent("tappingTopRight");
+        const event1 = new CustomEvent("tappingBottomRight");
+        const event2 = new CustomEvent("tappingTopLeft");
+        const event3 = new CustomEvent("tappingBottomLeft");
+        const event4 = new CustomEvent("tappingMisDetectioin");
 
-        let event5 = new CustomEvent("tappingHorizontallyRight");
-        let event6 = new CustomEvent("tappingHorizontallyLeft");
-        let event7 = new CustomEvent("tappingHorizontallyMisDetectioin");
+        const event5 = new CustomEvent("tappingHorizontallyRight");
+        const event6 = new CustomEvent("tappingHorizontallyLeft");
+        const event7 = new CustomEvent("tappingHorizontallyMisDetectioin");
 
-        let event8 = new CustomEvent("tappingHorizontallyRightStrong");
-        let event9 = new CustomEvent("tappingHorizontallyLeftStrong");
+        const event8 = new CustomEvent("tappingHorizontallyRightStrong");
+        const event9 = new CustomEvent("tappingHorizontallyLeftStrong");
 
         this.eventDict = { 0: event0, 1: event1, 2: event2, 3: event3, 4: event4, 5: event5, 6: event6, 7: event7, 8: event8, 9: event9 };
     }
@@ -68,12 +68,12 @@ let TappingModel = class {
     }
 
     // 予測（と叩きイベントの発行）
-    async model_predict(array) {
+    model_predict(array) {
         // console.log(array);
         if (this.model) {
-            let result = tf.tidy(() => {
+            const result = tf.tidy(() => {
                 let orientation_arr;
-                if (tappingSettings.deviceOrientation == "horizontal") {
+                if (TAPPING.config.deviceOrientation == "horizontal") {
                     orientation_arr = [0, 1];
                 } else {
                     orientation_arr = [1, 0];
@@ -90,22 +90,22 @@ let TappingModel = class {
                     kinds_arr = [1, 1, 0];
                 }
 
-                let wavefome_tf = tf.tensor([array]);
-                let orientation_tf = tf.tensor([orientation_arr]);
-                let kinds_tf = tf.tensor([kinds_arr]);
+                const wavefome_tf = tf.tensor([array]);
+                const orientation_tf = tf.tensor([orientation_arr]);
+                const kinds_tf = tf.tensor([kinds_arr]);
                 // console.log(wavefome_tf.dataSync());
                 // console.log(wavefome_tf.arraySync());
 
-                let arr = [wavefome_tf, orientation_tf, kinds_tf];
+                const arr = [wavefome_tf, orientation_tf, kinds_tf];
                 // console.log(arr);
                 // console.log(wavefome_tf.arraySync());
 
                 // 予測
-                let y_pred = this.model.predict(arr).dataSync();
+                const y_pred = this.model.predict(arr).dataSync();
                 // console.log(y_pred);
 
                 // 何番目の確率が一番高いか
-                let nummber = tf.argMax(y_pred).arraySync();
+                const nummber = tf.argMax(y_pred).arraySync();
 
                 // console.log(y_pred3);
 
@@ -121,9 +121,9 @@ let TappingModel = class {
     }
 
     // 叩きイベントの発行
-    //　横方向の叩きイベントに対して強弱の判断をする
+    // 横方向の叩きイベントに対して強弱の判断をする
     tappingdDispatchEvent(n) {
-        let s = n.toFixed();
+        const s = n.toFixed();
         let act = -1;
         if (s == 5) {
             if (tappingStrength == 1) {
@@ -144,7 +144,7 @@ let TappingModel = class {
         }
 
         if (this.eventDict[act]) {
-            window.dispatchEvent(this.eventDict[act]);
+            globalThis.dispatchEvent(this.eventDict[act]);
             // console.log(this.eventDict[act]);
         }
     }
@@ -172,10 +172,11 @@ class TappingSensor {
 
     // センサデータを取得した時
     handleDeviceMotion(e) {
+        
         // 通常の処理を無効にする
         // e.preventDefault();
 
-        let now = Date.now();
+        const now = Date.now();
 
         // 加速度と角速度を取得
         let ax = e.acceleration.x;
@@ -195,7 +196,7 @@ class TappingSensor {
         }
 
         // センサの向きがiOSとAndroidで違うため、Android流に統一する
-        let ua = navigator.userAgent;
+        const ua = navigator.userAgent;
         if (ua.indexOf("iPhone") >= 0 || ua.indexOf("iPad") >= 0 || navigator.userAgent.indexOf("iPod") >= 0) {
             ax = -1 * ax;
             ay = -1 * ay;
@@ -210,7 +211,7 @@ class TappingSensor {
             this.checkTappingStart(ax, ay, az, now);
             // 叩きの終わりを検知
         } else {
-            this.checkTappingEnd(ax, ay, az, now);
+            this.checkTappingEnd(now);
         }
     }
 
@@ -238,7 +239,7 @@ class TappingSensor {
     }
 
     // 叩きの始まりを検知
-    async checkTappingStart(ax, ay, az, now) {
+    checkTappingStart(ax, ay, az, now) {
         if (now > this.shikiitiTime + tappingSettings.tappingMinimumInterval) {
             if (Math.abs(ax) > tappingSettings.tappingThreshold || Math.abs(ay) > tappingSettings.tappingThreshold || Math.abs(az) > tappingSettings.tappingThreshold) {
                 this.isTapping = true;
@@ -248,13 +249,13 @@ class TappingSensor {
     }
 
     // 叩きの終わりを検知
-    async checkTappingEnd(ax, ay, az, now) {
+    checkTappingEnd(now) {
         if (this.isTapping == true) {
             if (now > this.shikiitiTime + tappingSettings.afterThresholdTimeRange) {
                 this.isTapping = false;
 
                 // // 前処理
-                let arr = this.preprocessing();
+                const arr = this.preprocessing();
 
                 // 予測と叩きイベントの発行
                 this.tappingModel.model_predict(arr);
@@ -285,13 +286,13 @@ class TappingSensor {
         _rz = _r.slice(32);
 
         //叩きの強弱を検証するための配列を作製
-        let strength_arry = [];
+        const strength_arry = [];
 
         for (let i = 0; i < _ax.length; i++) {
             strength_arry[i] = _ax[i] ** 2 + _ay[i] ** 2 + _az[i] ** 2;
         }
 
-        let maxIndex = strength_arry.indexOf(Math.max(...strength_arry));
+        const maxIndex = strength_arry.indexOf(Math.max(...strength_arry));
 
         //叩きの強弱を評価
         if (Math.sqrt(strength_arry[maxIndex]) > strength_border) {
@@ -309,12 +310,12 @@ class TappingSensor {
 
     // array(1次元)をtargetLengsの長さにする
     getArrayLengsChange(array, targetLengs) {
-        let targetArray = [];
+        const targetArray = [];
         if (array.length == targetLengs) {
             return array;
             // 長さ100を長さ3にするとしたら、25, 50, 75番目を選んでる
         } else if (array.length > targetLengs) {
-            let targetIndexTips = array.length / (targetLengs + 1);
+            const targetIndexTips = array.length / (targetLengs + 1);
             let k = 1;
             let targetIndex = parseInt(targetIndexTips * k);
             for (let i = 0; i < targetLengs; i++) {
@@ -324,8 +325,8 @@ class TappingSensor {
             }
             // 長さ13から長さ16への変換でデータを3個追加するとしたら、13を(3+1)等分した箇所にデータを追加する
         } else if (array.length < targetLengs) {
-            let diff = targetLengs - array.length;
-            let targetIndexTips = targetLengs / (diff + 1);
+            const diff = targetLengs - array.length;
+            const targetIndexTips = targetLengs / (diff + 1);
             let k = 1;
             let targetIndex = parseInt(targetIndexTips * k);
             let j = 0;
@@ -354,15 +355,15 @@ class TappingSensor {
         for (let i = 0; i < array.length; i++) {
             sum += array[i];
         }
-        let heikin = sum / array.length;
+        const heikin = sum / array.length;
 
         // 偏差を求める
-        let hensaArray = array.map((value) => {
+        const hensaArray = array.map((value) => {
             return value - heikin;
         });
 
         // 偏差を2乗する
-        let hensa2Array = hensaArray.map((value) => {
+        const hensa2Array = hensaArray.map((value) => {
             return value * value;
         });
 
@@ -373,10 +374,10 @@ class TappingSensor {
         }
 
         // 偏差の合計をデータの総数で割って分散を求める
-        let bunsan = hensa2Goukei / hensa2Array.length;
+        const bunsan = hensa2Goukei / hensa2Array.length;
 
         // 分散の正の平方根を求めて標準偏差を算出する
-        let hyoujunhensa = Math.sqrt(bunsan);
+        const hyoujunhensa = Math.sqrt(bunsan);
 
         // 標準化した配列
         let hyoujunkaArray = [];
@@ -395,14 +396,10 @@ class TappingSensor {
 
     // 2次元行列の転置
     getTenti(array) {
-        let transpose = (a) => a[0].map((_, c) => a.map((r) => r[c]));
+        const transpose = (a) => a[0].map((_, c) => a.map((r) => r[c]));
         return transpose(array);
     }
 }
-
-let handleTappingRemove = () => {
-    document.getElementById("tappingChild").remove();
-};
 
 /**
  * to initialize tapping.js. also contain DeviceMotionEvent request permission
@@ -434,13 +431,13 @@ export async function reqPermission() {
     const TS = new TappingSensor();
 
     // DeviceMotionEventがない時
-    if (!window.DeviceMotionEvent) {
-        console.log("window.DeviceMotionEventがありません");
+    if (!globalThis.DeviceMotionEvent) {
+        console.log("globalThis.DeviceMotionEventがありません");
         alert("このデバイスはDeviceMotionEventに対応していません");
         return false;
     }
     // DeviceMotionEventがある時
-    console.log(window.DeviceMotionEvent);
+    console.log(globalThis.DeviceMotionEvent);
 
     // ios13以上の時
     if (DeviceMotionEvent.requestPermission && typeof DeviceMotionEvent.requestPermission === "function") {
@@ -449,28 +446,147 @@ export async function reqPermission() {
         const dme = await DeviceMotionEvent.requestPermission();
         if (dme == "denied") return false;
         if (dme == "granted") {
-            window.addEventListener("devicemotion", TS.handleDeviceMotion);
+            globalThis.addEventListener("devicemotion", TS.handleDeviceMotion);
             return true;
         }
 
         // ios13以上でない時
     } else {
         console.log("non ios13+");
-        window.addEventListener("devicemotion", TS.handleDeviceMotion);
+        globalThis.addEventListener("devicemotion", TS.handleDeviceMotion);
         return true;
     }
 }
 
-window.addEventListener("load", () => {
-    // 向き
-    let tappingWindowResize = () => {
-        if (window.innerWidth > window.innerHeight) {
-            tappingSettings.deviceOrientation = "horizontal";
+// globalThis.addEventListener("load", () => {
+//     // 向き
+//     let tappingWindowResize = () => {
+//         if (globalThis.innerWidth > globalThis.innerHeight) {
+//             tappingSettings.deviceOrientation = "horizontal";
+//         } else {
+//             tappingSettings.deviceOrientation = "vertical";
+//         }
+//         // console.log(tappingSettings.deviceOrientation);
+//     };
+//     tappingWindowResize();
+//     globalThis.addEventListener("resize", tappingWindowResize);
+// });
+
+export class TAPPING {
+    static config={
+        // デフォルトの閾値
+        defaultTappingThreshold : 1,
+        // ユーザがキャリブレーションした閾値
+        tappingThreshold : 1,
+        // 閾値の前の時間
+        beforeThresholdTimeRange : 200, // 0.2秒
+        // 閾値の後の時間
+        afterThresholdTimeRange : 50, // 0.05秒
+        // 叩きの最低間隔(連続で叩きイベントが発行されないようにする)
+        tappingMinimumInterval : 500, //0.5秒
+        // TensorFlor.jsモデルのパス
+        modelUrl : "tfjs/model.json",
+        // キャリブレーションページのパス
+        calibrationUrl : "https://tataki-server.fun/calibration",
+        // キャリブレーション結果を取得する頁のパス
+        calibrationGetUrl : "https://tataki-server.fun",
+        // 向き
+        deviceOrientation : "vertical",
+        // 機種
+        deviceKinds : "others",
+        //強弱の判断 0 ->弱い叩き 1 ->強い叩き
+        tappingStrength : 0,
+        //強弱の閾値
+        strength_border : 5.0,
+    }
+    /**
+     * to initialize tapping.js. also contain DeviceMotionEvent request permission
+     * @param {HTMLElement} dom - dom for binding user action to request permission
+     * @param {Function} grantedFunc - function called after permission granted
+     * @param {Function} deniedFunc - function called after permission denied
+     */
+    constructor(dom, grantedFunc = null, deniedFunc = null) {
+        console.log("aa");
+
+        this.tappingjsInit(dom, grantedFunc, deniedFunc);
+
+
+        //resize時の処理バインド
+        globalThis.addEventListener(
+            "load",
+            () => {
+                this.windowResize();
+                globalThis.addEventListener("resize", this.windowResize);
+            },
+            { once: true }
+        );
+    }
+
+    /**
+     * func to save device's orientation
+     */
+    windowResize() {
+        if (globalThis.innerWidth > globalThis.innerHeight) {
+            TAPPING.config.deviceOrientation = "horizontal";
         } else {
-            tappingSettings.deviceOrientation = "vertical";
+            TAPPING.config.deviceOrientation = "vertical";
         }
-        // console.log(tappingSettings.deviceOrientation);
-    };
-    tappingWindowResize();
-    window.addEventListener("resize", tappingWindowResize);
-});
+    }
+
+    /**
+     * to initialize tapping.js. also contain DeviceMotionEvent request permission
+     * @param {HTMLElement} dom - dom for binding user action to request permission
+     * @param {Function} grantedFunc - function called after permission granted
+     * @param {Function} deniedFunc - function called after permission denied
+     */
+    tappingjsInit(dom, grantedFunc = null, deniedFunc = null) {
+        dom.addEventListener(
+            "click",
+            async () => {
+                const success = await reqPermission();
+                if (success == true && grantedFunc != null) {
+                    grantedFunc();
+                }
+                if (success == false && deniedFunc != null) {
+                    deniedFunc();
+                }
+            },
+            { once: true }
+        );
+    }
+
+    /**
+     * to DeviceMotionEvent request permission
+     * @return {boolean} DeviceMotion granted or not
+     */
+    async reqPermission() {
+        const TS = new TappingSensor();
+
+        // DeviceMotionEventがない時
+        if (!globalThis.DeviceMotionEvent) {
+            console.log("globalThis.DeviceMotionEventがありません");
+            alert("このデバイスはDeviceMotionEventに対応していません");
+            return false;
+        }
+        // DeviceMotionEventがある時
+        console.log(globalThis.DeviceMotionEvent);
+
+        // ios13以上の時
+        if (DeviceMotionEvent.requestPermission && typeof DeviceMotionEvent.requestPermission === "function") {
+            console.log("ios13+");
+            // ユーザーに許可を求めるダイアログを表示
+            const dme = await DeviceMotionEvent.requestPermission();
+            if (dme == "denied") return false;
+            if (dme == "granted") {
+                globalThis.addEventListener("devicemotion", TS.handleDeviceMotion);
+                return true;
+            }
+
+            // ios13以上でない時
+        } else {
+            console.log("non ios13+");
+            globalThis.addEventListener("devicemotion", TS.handleDeviceMotion);
+            return true;
+        }
+    }
+}

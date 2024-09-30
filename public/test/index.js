@@ -1,5 +1,6 @@
-import { init } from "./tapping.js";
-import { tappingjsInit } from "./tapping.js";
+// import { init } from "./tapping.js";
+import { TAPPING } from "./tapping.js";
+// import { tappingjsInit } from "https://cdn.jsdelivr.net/gh/aisuQwQ/ImpactInput/public/test/tapping.js";
 
 const btn = document.querySelector("#start-btn");
 function deny() {
@@ -10,29 +11,42 @@ function grant() {
     const msg = document.querySelector("#msg");
     msg.innerHTML = "付与されました";
 }
-tappingjsInit(btn, grant, deny);
+// tappingjsInit(btn, grant, deny);
+
+globalThis.addEventListener("tappingTopRight", () => {
+    logfetch("tappingTopRight");
+});
+globalThis.addEventListener("tappingTopLeft", () => {
+    logfetch("tappingTopLeft");
+});
 
 //通常の強さで叩いた場合のプロセス
-window.addEventListener("tappingHorizontallyRight", funcRight);
-window.addEventListener("tappingHorizontallyLeft", funcLeft);
-
+globalThis.addEventListener("tappingHorizontallyRight", funcRight);
+globalThis.addEventListener("tappingHorizontallyLeft", funcLeft);
 //強く叩いた場合のプロセス
-window.addEventListener("tappingHorizontallyRightStrong", funcRightStrong);
-window.addEventListener("tappingHorizontallyLeftStrong", funcLeftStrong);
+globalThis.addEventListener("tappingHorizontallyRightStrong", funcRightStrong);
+globalThis.addEventListener("tappingHorizontallyLeftStrong", funcLeftStrong);
 
 function funcRight() {
-    document.body.innerHTML = "funcRight";
-    console.log("@@@@");
+    logfetch("funcRight");
 }
 function funcLeft() {
-    document.body.innerHTML = "funcLeft";
-    console.log("####");
+    logfetch("funcLeft");
 }
 function funcRightStrong() {
-    document.body.innerHTML = "funcRightStrong";
-    console.log("@@@@@@@@");
+    logfetch("funcRightStrong");
 }
 function funcLeftStrong() {
-    document.body.innerHTML = "funcLeftStrong";
-    console.log("########");
+    logfetch("funcLeftStrong");
 }
+
+function logfetch(s) {
+    const json = { content: s };
+    fetch("/log", { method: "POST", body: JSON.stringify(json) });
+}
+
+new TAPPING(btn, grant, deny);
+document.addEventListener("click", ()=>{
+    globalThis.dispatchEvent(new Event("tappingHorizontallyRight"));
+})
+logfetch("test");
