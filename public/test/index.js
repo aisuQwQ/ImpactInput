@@ -1,6 +1,7 @@
 // import { init } from "./tapping.js";
 import { TAPPING } from "./tapping.js";
 // import { tappingjsInit } from "https://cdn.jsdelivr.net/gh/aisuQwQ/ImpactInput/public/test/tapping.js";
+// import { TAPPING } from "https://cdn.jsdelivr.net/gh/aisuQwQ/ImpactInput@0.9.1/public/test/tapping.js";
 
 const btn = document.querySelector("#start-btn");
 function deny() {

@@ -386,7 +386,7 @@ export class TAPPING {
         // 叩きの最低間隔(連続で叩きイベントが発行されないようにする)
         tappingMinimumInterval : 500, //0.5秒
         // TensorFlor.jsモデルのパス
-        modelUrl : "tfjs/model.json",
+        modelUrl : "./tfjs/model.json",
         // キャリブレーションページのパス
         calibrationUrl : "https://tataki-server.fun/calibration",
         // キャリブレーション結果を取得する頁のパス
