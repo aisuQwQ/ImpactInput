@@ -4,7 +4,6 @@ class TappingModel {
     constructor() {
         this.model;
         const modelUrl = TAPPING.config.modelUrl;
-        console.log("???", modelUrl);
         
         this.model_load(modelUrl);
 
@@ -146,11 +145,6 @@ class TappingSensor {
 
     // センサデータを取得した時
     handleDeviceMotion(e) {
-        console.log('???');
-        for(const i of Object.keys(TAPPING.config)){
-            console.log(i, ":", TAPPING.config[i]);
-        }
-        
         // 通常の処理を無効にする
         // e.preventDefault();
 
@@ -413,8 +407,6 @@ export class TAPPING {
      * @param {Function} deniedFunc - function called after permission denied
      */
     constructor(dom, grantedFunc = null, deniedFunc = null) {
-        console.log("aa");
-
         this.tappingjsInit(dom, grantedFunc, deniedFunc);
 
         //resize時の処理バインド
