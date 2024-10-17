@@ -51,3 +51,18 @@ document.addEventListener("click", ()=>{
     globalThis.dispatchEvent(new Event("tappingHorizontallyRight"));
 })
 logfetch("test");
+
+// globalThis.addEventListener("devicemotion", (e)=>{
+//     const msg = document.querySelector("#msg");
+//     // msg.innerHTML = `
+//     // ${e.accelerationIncludingGravity.x}<br>${e.accelerationIncludingGravity.y}<br>${e.accelerationIncludingGravity.z}
+//     // <br>${e.acceleration.x}<br>${e.acceleration.y}<br>${e.acceleration.z}
+//     // `
+//     const max=Math.max(parseInt(msg.innerHTML)||0, Math.sqrt(e.acceleration.x**2+e.acceleration.y**2+e.acceleration.z**2))
+//     msg.innerHTML=max;
+// });
+
+globalThis.addEventListener("tappingAdvanced", (e)=>{
+    const msg = document.querySelector("#msg");
+    msg.innerHTML=`${e.number} & ${e.strength}`;
+})

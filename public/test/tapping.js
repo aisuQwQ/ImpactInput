@@ -20,6 +20,8 @@ class TappingModel {
         const event8 = new CustomEvent("tappingHorizontallyRightStrong");
         const event9 = new CustomEvent("tappingHorizontallyLeftStrong");
 
+        this.eventAdvanced = new CustomEvent("tappingAdvanced");
+
         this.eventDict = { 0: event0, 1: event1, 2: event2, 3: event3, 4: event4, 5: event5, 6: event6, 7: event7, 8: event8, 9: event9 };
     }
 
@@ -41,7 +43,7 @@ class TappingModel {
     }
 
     // 予測（と叩きイベントの発行）
-    model_predict(array) {
+    model_predict(array, strength=0) {
         // console.log(array);
         if (this.model) {
             const result = tf.tidy(() => {
@@ -84,6 +86,9 @@ class TappingModel {
 
                 // 叩きイベントの発行
                 this.tappingdDispatchEvent(nummber);
+                this.eventAdvanced.number=nummber;
+                this.eventAdvanced.strength=strength;
+                globalThis.dispatchEvent(this.eventAdvanced);
 
                 return nummber;
             });
@@ -227,10 +232,11 @@ class TappingSensor {
                 this.isTapping = false;
 
                 // // 前処理
-                const arr = this.preprocessing();
+                const [arr, strength] = this.preprocessing();
 
                 // 予測と叩きイベントの発行
-                this.tappingModel.model_predict(arr);
+                this.tappingModel.model_predict(arr, strength);
+
             }
         }
     }
@@ -267,7 +273,8 @@ class TappingSensor {
         const maxIndex = strength_arry.indexOf(Math.max(...strength_arry));
 
         //叩きの強弱を評価
-        if (Math.sqrt(strength_arry[maxIndex]) > TAPPING.config.strength_border) {
+        const strength=Math.sqrt(strength_arry[maxIndex]);
+        if (strength > TAPPING.config.strength_border) {
             TAPPING.config.tappingStrength = 1;
         } else {
             TAPPING.config.tappingStrength = 0;
@@ -277,7 +284,7 @@ class TappingSensor {
 
         _array = this.getTenti(_array);
 
-        return _array;
+        return [_array, strength];
     }
 
     // array(1次元)をtargetLengsの長さにする
@@ -386,7 +393,8 @@ export class TAPPING {
         // 叩きの最低間隔(連続で叩きイベントが発行されないようにする)
         tappingMinimumInterval : 500, //0.5秒
         // TensorFlor.jsモデルのパス
-        modelUrl : "./tfjs/model.json",
+        // modelUrl : "./tfjs/model.json",
+        modelUrl : "https://cdn.jsdelivr.net/gh/aisuQwQ/ImpactInput/src/tfjs/model.json",
         // キャリブレーションページのパス
         calibrationUrl : "https://tataki-server.fun/calibration",
         // キャリブレーション結果を取得する頁のパス
