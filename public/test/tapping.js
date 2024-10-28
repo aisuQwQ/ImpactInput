@@ -4,14 +4,8 @@ class TappingModel {
     constructor() {
         this.model;
         const modelUrl = TAPPING.config.modelUrl;
-        
-        this.model_load(modelUrl);
 
-        const event0 = new CustomEvent("tappingTopRight");
-        const event1 = new CustomEvent("tappingBottomRight");
-        const event2 = new CustomEvent("tappingTopLeft");
-        const event3 = new CustomEvent("tappingBottomLeft");
-        const event4 = new CustomEvent("tappingMisDetectioin");
+        this.model_load(modelUrl);
 
         const event5 = new CustomEvent("tappingHorizontallyRight");
         const event6 = new CustomEvent("tappingHorizontallyLeft");
@@ -22,7 +16,13 @@ class TappingModel {
 
         this.eventAdvanced = new CustomEvent("tappingAdvanced");
 
-        this.eventDict = { 0: event0, 1: event1, 2: event2, 3: event3, 4: event4, 5: event5, 6: event6, 7: event7, 8: event8, 9: event9 };
+        this.eventDict = {
+            5: event5,
+            6: event6,
+            7: event7,
+            8: event8,
+            9: event9,
+        };
     }
 
     // モデルの読み込み
@@ -31,102 +31,72 @@ class TappingModel {
             this.model = await tf.loadLayersModel(modelUrl);
             console.log("TensorFlow.js model is loaded.");
         } catch (e) {
-            try {
-                this.model = await tf.loadLayersModel("https://tataki-server.fun/tfjs/model.json");
-                console.log("TensorFlow.js model is loaded.");
-            } catch (e2) {
-                console.log("TensorFlow.js model could not be loaded.");
-                console.error(e);
-                console.error(e2);
-            }
+            console.log("TensorFlow.js model could not be loaded.");
+            console.error(e);
         }
     }
 
     // 予測（と叩きイベントの発行）
-    model_predict(array, strength=0) {
+    model_predict(array, strength = 0) {
         // console.log(array);
-        if (this.model) {
-            const result = tf.tidy(() => {
-                let orientation_arr;
-                if (TAPPING.config.deviceOrientation == "horizontal") {
-                    orientation_arr = [0, 1];
-                } else {
-                    orientation_arr = [1, 0];
-                }
-
-                let kinds_arr;
-                if (TAPPING.config.deviceKinds == "SE3") {
-                    kinds_arr = [1, 0, 0];
-                } else if (TAPPING.config.deviceKinds == "Nexus9") {
-                    kinds_arr = [0, 1, 0];
-                } else if (TAPPING.config.deviceKinds == "FireHD10") {
-                    kinds_arr = [0, 0, 1];
-                } else {
-                    kinds_arr = [1, 1, 0];
-                }
-
-                const wavefome_tf = tf.tensor([array]);
-                const orientation_tf = tf.tensor([orientation_arr]);
-                const kinds_tf = tf.tensor([kinds_arr]);
-                // console.log(wavefome_tf.dataSync());
-                // console.log(wavefome_tf.arraySync());
-
-                const arr = [wavefome_tf, orientation_tf, kinds_tf];
-                // console.log(arr);
-                // console.log(wavefome_tf.arraySync());
-
-                // 予測
-                const y_pred = this.model.predict(arr).dataSync();
-                // console.log(y_pred);
-
-                // 何番目の確率が一番高いか
-                const nummber = tf.argMax(y_pred).arraySync();
-
-                // console.log(y_pred3);
-
-                // 叩きイベントの発行
-                this.tappingdDispatchEvent(nummber);
-                this.eventAdvanced.number=nummber;
-                this.eventAdvanced.strength=strength;
-                globalThis.dispatchEvent(this.eventAdvanced);
-
-                return nummber;
-            });
-            return result;
-        } else {
+        if (!this.model) {
             return -1;
         }
+
+        const result = tf.tidy(() => {
+            const orientation_arr = [0, 1]; //横画面
+
+            let kinds_arr;
+            if (TAPPING.config.deviceKinds == "SE3") {
+                kinds_arr = [1, 0, 0];
+            } else if (TAPPING.config.deviceKinds == "Nexus9") {
+                kinds_arr = [0, 1, 0];
+            } else if (TAPPING.config.deviceKinds == "FireHD10") {
+                kinds_arr = [0, 0, 1];
+            } else {
+                kinds_arr = [1, 1, 0];
+            }
+
+            const wavefome_tf = tf.tensor([array]);
+            const orientation_tf = tf.tensor([orientation_arr]);
+            const kinds_tf = tf.tensor([kinds_arr]);
+
+            const arr = [wavefome_tf, orientation_tf, kinds_tf];
+
+            // 予測
+            const y_pred = this.model.predict(arr).dataSync();
+            console.log("y_pred");
+            console.log("5:", y_pred[5].toFixed(4));
+            console.log("6:", y_pred[6].toFixed(4));
+            console.log("7:", y_pred[7].toFixed(4));
+
+            // 何番目の確率が一番高いか
+            const number = tf.argMax(y_pred).arraySync();
+
+            // 叩きイベントの発行
+            this.tappingdDispatchEvent(number, strength);
+
+            return number;
+        });
+        return result;
     }
 
     // 叩きイベントの発行
-    // 横方向の叩きイベントに対して強弱の判断をする
-    tappingdDispatchEvent(n) {
-        const s = n.toFixed();
-        let act = -1;
-        if (s == 5) {
-            if (TAPPING.config.tappingStrength == 1) {
-                act = 8;
-                TAPPING.config.tappingStrength = 0;
-            } else if (TAPPING.config.tappingStrength == 0) {
-                act = 5;
-            }
-        } else if (s == 6) {
-            if (TAPPING.config.tappingStrength == 1) {
-                act = 9;
-                TAPPING.config.tappingStrength = 0;
-            } else if (TAPPING.config.tappingStrength == 0) {
-                act = 6;
-            }
-        } else {
-            act = s;
+    tappingdDispatchEvent(number, strength) {
+        // 横方向の叩きイベントに対して強弱の判断をする
+        let act = number;
+        if (strength > TAPPING.config.strength_border) {
+            act += 3;
         }
-
         if (this.eventDict[act]) {
             globalThis.dispatchEvent(this.eventDict[act]);
-            // console.log(this.eventDict[act]);
         }
+        //上級者用イベント発行
+        this.eventAdvanced.number = number;
+        this.eventAdvanced.strength = strength;
+        globalThis.dispatchEvent(this.eventAdvanced);
     }
-};
+}
 
 class TappingSensor {
     constructor() {
@@ -174,7 +144,10 @@ class TappingSensor {
 
         // センサの向きがiOSとAndroidで違うため、Android流に統一する
         const ua = navigator.userAgent;
-        if (ua.indexOf("iPhone") >= 0 || ua.indexOf("iPad") >= 0 || navigator.userAgent.indexOf("iPod") >= 0) {
+        if (
+            ua.indexOf("iPhone") >= 0 || ua.indexOf("iPad") >= 0 ||
+            navigator.userAgent.indexOf("iPod") >= 0
+        ) {
             ax = -1 * ax;
             ay = -1 * ay;
             az = -1 * az;
@@ -204,7 +177,10 @@ class TappingSensor {
         this.arrTime.push(now);
 
         // 古いデータを削除
-        while (this.arrTime[0] < now - TAPPING.config.beforeThresholdTimeRange && this.isTapping == false) {
+        while (
+            this.arrTime[0] < now - TAPPING.config.beforeThresholdTimeRange &&
+            this.isTapping == false
+        ) {
             this.arrAX.shift();
             this.arrAY.shift();
             this.arrAZ.shift();
@@ -218,7 +194,11 @@ class TappingSensor {
     // 叩きの始まりを検知
     checkTappingStart(ax, ay, az, now) {
         if (now > this.shikiitiTime + TAPPING.config.tappingMinimumInterval) {
-            if (Math.abs(ax) > TAPPING.config.tappingThreshold || Math.abs(ay) > TAPPING.config.tappingThreshold || Math.abs(az) > TAPPING.config.tappingThreshold) {
+            if (
+                Math.abs(ax) > TAPPING.config.tappingThreshold ||
+                Math.abs(ay) > TAPPING.config.tappingThreshold ||
+                Math.abs(az) > TAPPING.config.tappingThreshold
+            ) {
                 this.isTapping = true;
                 this.shikiitiTime = now;
             }
@@ -228,7 +208,9 @@ class TappingSensor {
     // 叩きの終わりを検知
     checkTappingEnd(now) {
         if (this.isTapping == true) {
-            if (now > this.shikiitiTime + TAPPING.config.afterThresholdTimeRange) {
+            if (
+                now > this.shikiitiTime + TAPPING.config.afterThresholdTimeRange
+            ) {
                 this.isTapping = false;
 
                 // // 前処理
@@ -236,7 +218,6 @@ class TappingSensor {
 
                 // 予測と叩きイベントの発行
                 this.tappingModel.model_predict(arr, strength);
-
             }
         }
     }
@@ -273,7 +254,7 @@ class TappingSensor {
         const maxIndex = strength_arry.indexOf(Math.max(...strength_arry));
 
         //叩きの強弱を評価
-        const strength=Math.sqrt(strength_arry[maxIndex]);
+        const strength = Math.sqrt(strength_arry[maxIndex]);
         if (strength > TAPPING.config.strength_border) {
             TAPPING.config.tappingStrength = 1;
         } else {
@@ -381,33 +362,34 @@ class TappingSensor {
 }
 
 export class TAPPING {
-    static config={
+    static config = {
         // デフォルトの閾値
-        defaultTappingThreshold : 1,
+        defaultTappingThreshold: 1,
         // ユーザがキャリブレーションした閾値
-        tappingThreshold : 1,
+        tappingThreshold: 1,
         // 閾値の前の時間
-        beforeThresholdTimeRange : 200, // 0.2秒
+        beforeThresholdTimeRange: 200, // 0.2秒
         // 閾値の後の時間
-        afterThresholdTimeRange : 50, // 0.05秒
+        afterThresholdTimeRange: 50, // 0.05秒
         // 叩きの最低間隔(連続で叩きイベントが発行されないようにする)
-        tappingMinimumInterval : 500, //0.5秒
+        tappingMinimumInterval: 500, //0.5秒
         // TensorFlor.jsモデルのパス
         // modelUrl : "./tfjs/model.json",
-        modelUrl : "https://cdn.jsdelivr.net/gh/aisuQwQ/ImpactInput/src/tfjs/model.json",
+        modelUrl:
+            "https://cdn.jsdelivr.net/gh/aisuQwQ/ImpactInput/src/tfjs/model.json",
         // キャリブレーションページのパス
-        calibrationUrl : "https://tataki-server.fun/calibration",
+        calibrationUrl: "https://tataki-server.fun/calibration",
         // キャリブレーション結果を取得する頁のパス
-        calibrationGetUrl : "https://tataki-server.fun",
+        calibrationGetUrl: "https://tataki-server.fun",
         // 向き
-        deviceOrientation : "vertical",
+        deviceOrientation: "vertical",
         // 機種
-        deviceKinds : "others",
+        deviceKinds: "others",
         //強弱の判断 0 ->弱い叩き 1 ->強い叩き
-        tappingStrength : 0,
+        tappingStrength: 0,
         //強弱の閾値
-        strength_border : 5.0,
-    }
+        strength_border: 5.0,
+    };
     /**
      * to initialize tapping.js. also contain DeviceMotionEvent request permission
      * @param {HTMLElement} dom - dom for binding user action to request permission
@@ -424,7 +406,7 @@ export class TAPPING {
                 this.windowResize();
                 globalThis.addEventListener("resize", this.windowResize);
             },
-            { once: true }
+            { once: true },
         );
     }
 
@@ -457,7 +439,7 @@ export class TAPPING {
                     deniedFunc();
                 }
             },
-            { once: true }
+            { once: true },
         );
     }
 
@@ -479,13 +461,19 @@ export class TAPPING {
         console.log(globalThis.DeviceMotionEvent);
 
         // ios13以上の時
-        if (DeviceMotionEvent.requestPermission && typeof DeviceMotionEvent.requestPermission === "function") {
+        if (
+            DeviceMotionEvent.requestPermission &&
+            typeof DeviceMotionEvent.requestPermission === "function"
+        ) {
             console.log("ios13+");
             // ユーザーに許可を求めるダイアログを表示
             const dme = await DeviceMotionEvent.requestPermission();
             if (dme == "denied") return false;
             if (dme == "granted") {
-                globalThis.addEventListener("devicemotion", TS.handleDeviceMotion);
+                globalThis.addEventListener(
+                    "devicemotion",
+                    TS.handleDeviceMotion,
+                );
                 return true;
             }
 
