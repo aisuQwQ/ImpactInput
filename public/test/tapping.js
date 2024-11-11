@@ -65,16 +65,22 @@ class TappingModel {
 
             // 予測
             const y_pred = this.model.predict(arr).dataSync();
-            console.log("y_pred");
-            console.log("5:", y_pred[5].toFixed(4));
-            console.log("6:", y_pred[6].toFixed(4));
-            console.log("7:", y_pred[7].toFixed(4));
+            console.log("❦=y_pred=========================❦");
+            console.log("5:", y_pred[5].toFixed(40));
+            console.log("6:", y_pred[6].toFixed(40));
+            console.log("7:", y_pred[7].toFixed(40));
+            const tf_out = {};
+            tf_out["right"] = y_pred[5];
+            tf_out["left"] = y_pred[6];
+            tf_out["miss"] = y_pred[7];
 
             // 何番目の確率が一番高いか
             const number = tf.argMax(y_pred).arraySync();
 
+            console.log("ans:", number, strength);
+
             // 叩きイベントの発行
-            this.tappingdDispatchEvent(number, strength);
+            this.tappingdDispatchEvent(number, strength, tf_out);
 
             return number;
         });
@@ -82,7 +88,7 @@ class TappingModel {
     }
 
     // 叩きイベントの発行
-    tappingdDispatchEvent(number, strength) {
+    tappingdDispatchEvent(number, strength, tf_out) {
         // 横方向の叩きイベントに対して強弱の判断をする
         let act = number;
         if (strength > TAPPING.config.strength_border) {
@@ -92,8 +98,9 @@ class TappingModel {
             globalThis.dispatchEvent(this.eventDict[act]);
         }
         //上級者用イベント発行
-        this.eventAdvanced.number = number;
+        this.eventAdvanced.corner = number;
         this.eventAdvanced.strength = strength;
+        this.eventAdvanced.tf_out = tf_out;
         globalThis.dispatchEvent(this.eventAdvanced);
     }
 }
@@ -253,13 +260,8 @@ class TappingSensor {
 
         const maxIndex = strength_arry.indexOf(Math.max(...strength_arry));
 
-        //叩きの強弱を評価
+        //叩きの強度を計算
         const strength = Math.sqrt(strength_arry[maxIndex]);
-        if (strength > TAPPING.config.strength_border) {
-            TAPPING.config.tappingStrength = 1;
-        } else {
-            TAPPING.config.tappingStrength = 0;
-        }
 
         let _array = [_ax, _ay, _az, _rx, _ry, _rz];
 
@@ -374,19 +376,12 @@ export class TAPPING {
         // 叩きの最低間隔(連続で叩きイベントが発行されないようにする)
         tappingMinimumInterval: 500, //0.5秒
         // TensorFlor.jsモデルのパス
-        // modelUrl : "./tfjs/model.json",
         modelUrl:
             "https://cdn.jsdelivr.net/gh/aisuQwQ/ImpactInput/src/tfjs/model.json",
-        // キャリブレーションページのパス
-        calibrationUrl: "https://tataki-server.fun/calibration",
-        // キャリブレーション結果を取得する頁のパス
-        calibrationGetUrl: "https://tataki-server.fun",
         // 向き
-        deviceOrientation: "vertical",
+        deviceOrientation: "portrait",
         // 機種
         deviceKinds: "others",
-        //強弱の判断 0 ->弱い叩き 1 ->強い叩き
-        tappingStrength: 0,
         //強弱の閾値
         strength_border: 5.0,
     };
@@ -415,9 +410,9 @@ export class TAPPING {
      */
     windowResize() {
         if (globalThis.innerWidth > globalThis.innerHeight) {
-            TAPPING.config.deviceOrientation = "horizontal";
+            TAPPING.config.deviceOrientation = "landscape";
         } else {
-            TAPPING.config.deviceOrientation = "vertical";
+            TAPPING.config.deviceOrientation = "portrait";
         }
     }
 

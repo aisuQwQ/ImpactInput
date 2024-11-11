@@ -47,9 +47,9 @@ function logfetch(s) {
 }
 
 new TAPPING(btn, grant, deny);
-document.addEventListener("click", ()=>{
+document.addEventListener("click", () => {
     globalThis.dispatchEvent(new Event("tappingHorizontallyRight"));
-})
+});
 logfetch("test");
 
 // globalThis.addEventListener("devicemotion", (e)=>{
@@ -62,7 +62,8 @@ logfetch("test");
 //     msg.innerHTML=max;
 // });
 
-globalThis.addEventListener("tappingAdvanced", (e)=>{
+globalThis.addEventListener("tappingAdvanced", (e) => {
     const msg = document.querySelector("#msg");
-    msg.innerHTML=`${e.number} & ${e.strength}`;
-})
+    msg.innerHTML = `${typeof e.corner} & ${typeof e.strength} & ${typeof e
+        .tf_out}`;
+});
